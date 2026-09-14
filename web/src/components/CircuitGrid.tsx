@@ -22,16 +22,22 @@ interface Props {
   onGridChange: (grid: GridState) => void
   tool: Tool
   valuesOnly?: boolean
+  editableKeys?: string[]
 }
 
-const VALUE_UNIT: Record<Exclude<ElementType, 'wire'>, string> = {
+const VALUE_UNIT: Record<Exclude<ElementType, 'wire' | 'switch'>, string> = {
   resistor: 'Ω',
   voltage: 'V',
   current: 'A',
+  capacitor: 'F',
 }
 
 function formatValue(el: PlacedElement): string {
   if (el.type === 'wire') return ''
+  if (el.type === 'switch') {
+    const firstTransition = el.transitionTimes?.[0] ?? 0.001
+    return `${el.initiallyClosed ? 'closed' : 'open'} → ${formatSeconds(firstTransition)}`
+  }
 
   const absolute = Math.abs(el.value)
   let scaled = el.value
@@ -52,6 +58,12 @@ function formatValue(el: PlacedElement): string {
   }
 
   return `${Number.parseFloat(scaled.toPrecision(4))} ${prefix}${VALUE_UNIT[el.type]}`
+}
+
+function formatSeconds(seconds: number): string {
+  if (seconds >= 1) return `${Number.parseFloat(seconds.toPrecision(4))} s`
+  if (seconds >= 0.001) return `${Number.parseFloat((seconds * 1_000).toPrecision(4))} ms`
+  return `${Number.parseFloat((seconds * 1_000_000).toPrecision(4))} µs`
 }
 
 /** A resistor's zigzag body, leads running straight from each node. */
@@ -119,6 +131,50 @@ function ElementGlyph({ row, col, el }: { row: number; col: number; el: PlacedEl
     )
   }
 
+  if (el.type === 'capacitor') {
+    const plateOffset = 5
+    const plateHalf = 10
+    return (
+      <g className="element-glyph">
+        {horizontal ? <>
+          <line x1={x1} y1={y1} x2={cx - plateOffset} y2={cy} className="component-path" />
+          <line x1={cx + plateOffset} y1={cy} x2={x2} y2={y2} className="component-path" />
+          <line x1={cx - plateOffset} y1={cy - plateHalf} x2={cx - plateOffset} y2={cy + plateHalf} className="capacitor-plate" />
+          <line x1={cx + plateOffset} y1={cy - plateHalf} x2={cx + plateOffset} y2={cy + plateHalf} className="capacitor-plate" />
+        </> : <>
+          <line x1={x1} y1={y1} x2={cx} y2={cy - plateOffset} className="component-path" />
+          <line x1={cx} y1={cy + plateOffset} x2={x2} y2={y2} className="component-path" />
+          <line x1={cx - plateHalf} y1={cy - plateOffset} x2={cx + plateHalf} y2={cy - plateOffset} className="capacitor-plate" />
+          <line x1={cx - plateHalf} y1={cy + plateOffset} x2={cx + plateHalf} y2={cy + plateOffset} className="capacitor-plate" />
+        </>}
+        {valueLabel}
+      </g>
+    )
+  }
+
+  if (el.type === 'switch') {
+    const closed = el.initiallyClosed ?? false
+    const terminalOffset = 12
+    return (
+      <g className="element-glyph">
+        {horizontal ? <>
+          <line x1={x1} y1={y1} x2={cx - terminalOffset} y2={cy} className="component-path" />
+          <line x1={cx + terminalOffset} y1={cy} x2={x2} y2={y2} className="component-path" />
+          <circle cx={cx - terminalOffset} cy={cy} r={2.5} className="switch-terminal" />
+          <circle cx={cx + terminalOffset} cy={cy} r={2.5} className="switch-terminal" />
+          <line x1={cx - terminalOffset} y1={cy} x2={cx + terminalOffset} y2={closed ? cy : cy - 12} className="switch-blade" />
+        </> : <>
+          <line x1={x1} y1={y1} x2={cx} y2={cy - terminalOffset} className="component-path" />
+          <line x1={cx} y1={cy + terminalOffset} x2={x2} y2={y2} className="component-path" />
+          <circle cx={cx} cy={cy - terminalOffset} r={2.5} className="switch-terminal" />
+          <circle cx={cx} cy={cy + terminalOffset} r={2.5} className="switch-terminal" />
+          <line x1={cx} y1={cy - terminalOffset} x2={closed ? cx : cx + 12} y2={cy + terminalOffset} className="switch-blade" />
+        </>}
+        {valueLabel}
+      </g>
+    )
+  }
+
   // voltage / current source: leads to a circle, +/- or an arrow inside.
   const r = 13
   const lead1: [number, number] = horizontal ? [cx - r, cy] : [cx, cy - r]
@@ -170,8 +226,15 @@ function OutputGlyph({ row, col }: { row: number; col: number }) {
   return <circle cx={cx} cy={cy} r={6} className="output-glyph" />
 }
 
-function CircuitGrid({ grid, onGridChange, tool, valuesOnly = false }: Props) {
-  const [editing, setEditing] = useState<{ key: string; value: string } | null>(null)
+function CircuitGrid({ grid, onGridChange, tool, valuesOnly = false, editableKeys }: Props) {
+  const [editing, setEditing] = useState<{
+    key: string
+    value: string
+    initialVoltage: string
+    initiallyClosed: boolean
+    transitionTimes: string
+    error: string
+  } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const panFrame = useRef<number | null>(null)
   const panVelocity = useRef({ x: 0, y: 0 })
@@ -224,11 +287,20 @@ function CircuitGrid({ grid, onGridChange, tool, valuesOnly = false }: Props) {
 
   useEffect(() => stopAutoPan, [])
 
+  const beginEdit = (k: string, el: PlacedElement) => setEditing({
+    key: k,
+    value: String(el.value),
+    initialVoltage: String(el.initialVoltage ?? 0),
+    initiallyClosed: el.initiallyClosed ?? false,
+    transitionTimes: (el.transitionTimes ?? [0.001]).join(', '),
+    error: '',
+  })
+
   const handleClick = (row: number, col: number) => {
     if (valuesOnly) {
       const k = key(row, col)
       const el = grid.elements.get(k)
-      if (el?.type === 'resistor') setEditing({ key: k, value: String(el.value) })
+      if (el && (editableKeys ? editableKeys.includes(k) : el.type === 'resistor')) beginEdit(k, el)
       return
     }
     const kind = cellKind(row, col)
@@ -246,7 +318,13 @@ function CircuitGrid({ grid, onGridChange, tool, valuesOnly = false }: Props) {
       if (existing?.type === tool) {
         onGridChange(withElement(grid, k, null))
       } else {
-        onGridChange(withElement(grid, k, { type: tool, value: DEFAULT_VALUE[tool as ElementType] }))
+        const placed: PlacedElement = { type: tool, value: DEFAULT_VALUE[tool as ElementType] }
+        if (tool === 'capacitor') placed.initialVoltage = 0
+        if (tool === 'switch') {
+          placed.initiallyClosed = false
+          placed.transitionTimes = [0.001]
+        }
+        onGridChange(withElement(grid, k, placed))
       }
     }
   }
@@ -257,8 +335,8 @@ function CircuitGrid({ grid, onGridChange, tool, valuesOnly = false }: Props) {
     if (kind !== 'edge-h' && kind !== 'edge-v') return
     const k = key(row, col)
     const el = grid.elements.get(k)
-    if (!el || (valuesOnly && el.type !== 'resistor')) return
-    setEditing({ key: k, value: String(el.value) })
+    if (!el || (valuesOnly && (editableKeys ? !editableKeys.includes(k) : el.type !== 'resistor'))) return
+    beginEdit(k, el)
   }
 
   const commitEdit = () => {
@@ -266,8 +344,33 @@ function CircuitGrid({ grid, onGridChange, tool, valuesOnly = false }: Props) {
     const el = grid.elements.get(editing.key)
     if (el) {
       const value = Number(editing.value)
-      if (editing.value.trim() && Number.isFinite(value) && (el.type !== 'resistor' || value > 0)) {
-        onGridChange(withElement(grid, editing.key, { ...el, value }))
+      if (el.type === 'switch') {
+        const parts = editing.transitionTimes.split(',')
+        const transitionTimes = parts.map(part => Number(part.trim()))
+        const valid = parts.length > 0 && parts.every(part => part.trim() !== '')
+          && transitionTimes.every((time, index) => Number.isFinite(time) && time >= 0 && (index === 0 || time > transitionTimes[index - 1]))
+        if (!valid) {
+          setEditing({ ...editing, error: 'Enter increasing, non-negative times separated by commas.' })
+          return
+        }
+        onGridChange(withElement(grid, editing.key, {
+          ...el,
+          initiallyClosed: editing.initiallyClosed,
+          transitionTimes,
+        }))
+      } else {
+        const initialVoltage = Number(editing.initialVoltage)
+        const positiveValue = (el.type !== 'resistor' && el.type !== 'capacitor') || value > 0
+        if (!editing.value.trim() || !Number.isFinite(value) || !positiveValue
+          || (el.type === 'capacitor' && !Number.isFinite(initialVoltage))) {
+          setEditing({ ...editing, error: el.type === 'capacitor' ? 'Capacitance must be positive and initial voltage finite.' : 'Enter a valid component value.' })
+          return
+        }
+        onGridChange(withElement(grid, editing.key, {
+          ...el,
+          value,
+          ...(el.type === 'capacitor' ? { initialVoltage } : {}),
+        }))
       }
     }
     setEditing(null)
@@ -373,7 +476,7 @@ function CircuitGrid({ grid, onGridChange, tool, valuesOnly = false }: Props) {
             </button>
           </div>
 
-          {editingElement.type !== 'wire' && (
+          {editingElement.type !== 'wire' && editingElement.type !== 'switch' && (
             <label className="component-value-field">
               <span>Value ({VALUE_UNIT[editingElement.type]})</span>
               <input
@@ -387,6 +490,46 @@ function CircuitGrid({ grid, onGridChange, tool, valuesOnly = false }: Props) {
               />
             </label>
           )}
+
+          {editingElement.type === 'capacitor' && !valuesOnly && (
+            <label className="component-value-field stacked">
+              <span>Initial voltage (V)</span>
+              <input
+                value={editing.initialVoltage}
+                onChange={(e) => setEditing({ ...editing, initialVoltage: e.target.value, error: '' })}
+              />
+              <small>Positive from the top/left endpoint to the bottom/right endpoint.</small>
+            </label>
+          )}
+
+          {editingElement.type === 'switch' && <>
+            <label className="component-value-field">
+              <span>Starts</span>
+              <select
+                value={editing.initiallyClosed ? 'closed' : 'open'}
+                onChange={(e) => setEditing({ ...editing, initiallyClosed: e.target.value === 'closed', error: '' })}
+              >
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+              </select>
+            </label>
+            <label className="component-value-field stacked">
+              <span>Toggle times (seconds)</span>
+              <input
+                autoFocus
+                value={editing.transitionTimes}
+                placeholder="0.001, 0.003"
+                onChange={(e) => setEditing({ ...editing, transitionTimes: e.target.value, error: '' })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitEdit()
+                  if (e.key === 'Escape') setEditing(null)
+                }}
+              />
+              <small>The switch flips state at each listed time.</small>
+            </label>
+          </>}
+
+          {editing.error && <p className="component-menu-error" role="alert">{editing.error}</p>}
 
           <div className="component-menu-actions">
             {editingElement.type !== 'wire' && (

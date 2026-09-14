@@ -15,6 +15,7 @@ const NAV: { page: Page; label: string }[] = [
 
 function App() {
   const [page, setPage] = useState<Page>('home')
+  const [practiceVisit, setPracticeVisit] = useState(0)
 
   return (
     <>
@@ -26,7 +27,7 @@ function App() {
               key={p}
               type="button"
               className={page === p ? 'nav-link active' : 'nav-link'}
-              onClick={() => setPage(p)}
+              onClick={() => { setPage(p); if (p === 'practice') setPracticeVisit(visit => visit + 1) }}
             >
               {label}
             </button>
@@ -36,7 +37,7 @@ function App() {
 
       <main className={page === 'practice' ? 'page practice-page' : 'page'}>
         {page === 'home' && <Home onNavigate={setPage} />}
-        {page === 'practice' && <Practice />}
+        {page === 'practice' && <Practice key={practiceVisit} />}
         {page === 'ranks' && <WipPage title="Ranks" />}
         {page === 'online' && <WipPage title="Online Battles" />}
       </main>

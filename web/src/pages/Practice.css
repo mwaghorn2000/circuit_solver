@@ -1,4 +1,14 @@
- .learning-practice {
+.problem-set-picker { width: 100%; max-width: 1150px; margin: 0 auto; padding: 48px 28px; overflow-y: auto; }
+.problem-set-picker > p { max-width: 680px; color: #9eafa2; }
+.problem-set-picker .eyebrow, .set-number { color: var(--green); font-size: 11px; letter-spacing: .12em; }
+.problem-set-picker h1 { font-size: 28px; }
+.problem-set-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 32px; }
+.problem-set-cards button { display: flex; flex-direction: column; align-items: start; padding: 26px; text-align: left; border: 1px solid var(--green-dim); background: var(--bg-panel); color: var(--white); cursor: pointer; }
+.problem-set-cards button:hover, .problem-set-cards button:focus-visible { border-color: var(--green); background: #102016; }
+.problem-set-cards h2 { font-size: 20px; }
+.problem-set-cards p { font-size: 13px; line-height: 1.7; color: #9eafa2; flex: 1; }
+.problem-set-cards button > span:last-child { margin-top: 18px; font-size: 12px; color: var(--green); }
+.learning-practice {
   display: grid; grid-template-columns: 240px minmax(320px, 1fr) 280px;
   width: 100%; height: 100%; min-height: 0; overflow: hidden; color: var(--white);
 }
@@ -27,6 +37,11 @@
 .mission-tools { padding: 12px 18px; border-top: 1px solid var(--green-dim); background: var(--bg-panel); }
 .controls, .mission-actions { display: flex; flex-wrap: wrap; gap: 7px; }
 .editor-instructions { color: #9eafa2; margin: 8px 0; }
+.analysis-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(31, 107, 52, .55); }
+.analysis-mode { display: flex; gap: 5px; }
+.timing-fields { display: flex; flex-wrap: wrap; gap: 9px; }
+.timing-fields label { display: grid; gap: 3px; color: #9eafa2; font-size: 10px; }
+.timing-fields input { width: 120px; padding: 6px 7px; border: 1px solid var(--green-dim); background: var(--bg); color: var(--white); font: 11px var(--mono); }
 .learning-practice .submit { background: var(--green); color: #07100a; border-color: var(--green); font-weight: bold; }
 .learning-practice .submit:hover { background: #b5ffc5; color: #07100a; }
 .requirements, .hints { padding-left: 18px; }
@@ -36,6 +51,17 @@
 .success { color: var(--green); }
 .needs-work { color: #ffc18c; }
 .worked-solution, .completion { margin-top: 18px; border-top: 1px solid var(--green-dim); padding-top: 10px; }
+.transient-plot { margin: 20px 0 0; padding-top: 14px; border-top: 1px solid var(--green-dim); }
+.transient-plot figcaption { margin-bottom: 8px; color: var(--green); font-size: 12px; }
+.transient-chart { position: relative; }
+.transient-chart svg { display: block; width: 100%; height: auto; touch-action: none; }
+.plot-axis { stroke: #819086; stroke-width: 1; }
+.plot-guide { stroke: rgba(129, 144, 134, .3); stroke-width: 1; stroke-dasharray: 3 4; }
+.plot-label { fill: #9eafa2; font: 8px var(--mono); }
+.plot-trace { fill: none; stroke: var(--green); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.plot-cursor { stroke: rgba(238, 247, 238, .55); stroke-width: 1; stroke-dasharray: 2 2; }
+.plot-point { fill: var(--bg-panel); stroke: var(--white); stroke-width: 1.5; }
+.plot-tooltip { display: block; margin-top: 4px; min-height: 18px; color: var(--white); font-size: 10px; text-align: center; }
 @media (max-width: 1150px) {
   .learning-practice { grid-template-columns: 195px minmax(300px, 1fr); overflow-y: auto; }
   .learning-path { grid-row: span 2; }

@@ -57,6 +57,24 @@
   stroke-linecap: round;
 }
 
+.component-path,
+.capacitor-plate,
+.switch-blade {
+  stroke: var(--green);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.capacitor-plate {
+  stroke-width: 3;
+}
+
+.switch-terminal {
+  fill: var(--bg-panel);
+  stroke: var(--green);
+  stroke-width: 2;
+}
+
 .source-lead {
   stroke: var(--green);
   stroke-width: 3;
@@ -178,6 +196,37 @@
   color: var(--white);
   font-family: var(--mono);
   padding: 4px 6px;
+}
+
+.component-menu select {
+  width: 98px;
+  background: var(--bg);
+  border: 1px solid var(--green-dim);
+  color: var(--white);
+  font-family: var(--mono);
+  padding: 4px 6px;
+}
+
+.component-value-field.stacked {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.component-value-field.stacked input {
+  width: 100%;
+}
+
+.component-value-field small {
+  color: #9eafa2;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.component-menu-error {
+  margin: 0;
+  color: #ff9a9a;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .component-menu-actions {

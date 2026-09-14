@@ -1,8 +1,9 @@
 // The circuit board is a "double resolution" grid: logical circuit nodes
 // sit at even (row, col); the cell directly between two adjacent nodes
 // (where exactly one of row/col is odd) is where a 2-terminal element
-// (wire/resistor/voltage/current) can be placed spanning them. Cells where
-// both row and col are odd are unused gaps, purely for spacing.
+// (wire/resistor/voltage/current/capacitor/switch) can be placed spanning
+// them. Cells where both row and col are odd are unused gaps, purely for
+// spacing.
 
 export const NODE_COLS = 24
 export const NODE_ROWS = 16
@@ -43,21 +44,29 @@ export function pixel(row: number, col: number): [number, number] {
   return [col * CELL + CELL / 2, row * CELL + CELL / 2]
 }
 
-export type ElementType = 'resistor' | 'voltage' | 'current' | 'wire'
+export type ElementType = 'resistor' | 'voltage' | 'current' | 'capacitor' | 'switch' | 'wire'
 export type Tool = ElementType | 'ground' | 'output'
 
 export interface PlacedElement {
   type: ElementType
-  /** ohms / volts / amps; unused for wire. */
+  /** Ohms / volts / amps / farads; unused for wire and switch. */
   value: number
   /** Reverses source polarity/direction without changing its grid position. */
   reversed?: boolean
+  /** Capacitor voltage V(first endpoint) - V(second endpoint) at t=0. */
+  initialVoltage?: number
+  /** Switch state before its first scheduled transition. */
+  initiallyClosed?: boolean
+  /** Times in seconds at which the switch toggles state. */
+  transitionTimes?: number[]
 }
 
 export const DEFAULT_VALUE: Record<ElementType, number> = {
   resistor: 100,
   voltage: 5,
   current: 1,
+  capacitor: 1e-6,
+  switch: 0,
   wire: 0,
 }
 
@@ -187,6 +196,22 @@ export function buildCircuitJson(grid: GridState): BuildResult | BuildError {
       components.push({ type: 'voltage_source', n_pos: n1, n_neg: n2, voltage: el.value })
     } else if (el.type === 'current') {
       components.push({ type: 'current_source', n_from: n1, n_to: n2, current: el.value })
+    } else if (el.type === 'capacitor') {
+      components.push({
+        type: 'capacitor', n1, n2, capacitance: el.value,
+        initial_voltage: el.initialVoltage ?? 0,
+      })
+    } else if (el.type === 'switch') {
+      let closed = el.initiallyClosed ?? false
+      const transitions = (el.transitionTimes ?? [0.001]).map(time => {
+        closed = !closed
+        return { time, closed }
+      })
+      components.push({
+        type: 'switch', n1, n2,
+        initially_closed: el.initiallyClosed ?? false,
+        transitions,
+      })
     }
   }
 

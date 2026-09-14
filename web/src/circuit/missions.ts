@@ -7,6 +7,12 @@ export interface Mission {
   layout: 'single' | 'series' | 'parallel' | 'blank'
   initial: number[]; answer: number[]; voltage?: number; current?: number; maxCurrent?: number
   hints: string[]; explanation: string
+  transient?: {
+    edit: 'resistor' | 'capacitor'; resistance: number; capacitance: number
+    initialVoltage: number; stop: number; switched?: boolean
+    targets: { time: number; voltage: number; tolerance?: number; below?: boolean }[]
+    currentLimit?: number
+  }
 }
 export const missions: Mission[] = [
   { id: 'ohms-law', title: 'Set the current', kind: 'Tune it', layout: 'single', supply: 6, count: 1, initial: [1000], answer: [2000], current: 3,
@@ -47,6 +53,26 @@ export const missions: Mission[] = [
     explanation: '20 kΩ and 10 kΩ give 12 × 10/30 = 4 V and 12/30000 = 0.4 mA. Many other values satisfy both requirements. You have completed the DC resistor path!' },
 ]
 export function starter(m: Mission, solution = false): GridState {
+  if (m.transient) {
+    const t = m.transient
+    const value = (solution ? m.answer : m.initial)[0]
+    const elements = new Map<string, PlacedElement>([
+      ['3,2', { type: 'voltage', value: m.supply }],
+      ['2,3', { type: 'wire', value: 0 }],
+      ['2,5', { type: 'resistor', value: t.edit === 'resistor' ? value : t.resistance }],
+      ['3,6', { type: 'capacitor', value: t.edit === 'capacitor' ? value : t.capacitance, initialVoltage: t.initialVoltage }],
+      ['4,3', { type: 'wire', value: 0 }],
+      ['4,5', { type: 'wire', value: 0 }],
+    ])
+    if (t.switched) {
+      // A shunt discharge resistor provides a return path after disconnecting the supply.
+      elements.set('2,3', { type: 'switch', value: 0, initiallyClosed: true, transitionTimes: [0.3] })
+      elements.set('2,7', { type: 'wire', value: 0 })
+      elements.set('3,8', { type: 'resistor', value: 10000 })
+      elements.set('4,7', { type: 'wire', value: 0 })
+    }
+    return { elements, ground: new Set(['4,2']), output: '2,6' }
+  }
   if (m.layout === 'blank' && !solution) return emptyGridState()
   const values = solution ? m.answer : m.initial
   const elements = new Map<string, PlacedElement>()
@@ -64,6 +90,20 @@ export function starter(m: Mission, solution = false): GridState {
 export interface Check { label: string; pass: boolean }
 export interface Solution { node_voltages: number[]; source_currents: number[] }
 export function requirements(m: Mission, grid: GridState): Check[] {
+  if (m.transient) {
+    const expected = starter(m)
+    const editableKey = m.transient.edit === 'resistor' ? '2,5' : '3,6'
+    const valid = grid.elements.size === expected.elements.size && [...expected.elements].every(([key, part]) => {
+      const actual = grid.elements.get(key)
+      return actual !== undefined && JSON.stringify({ ...actual, value: key === editableKey ? part.value : actual.value }) === JSON.stringify(part)
+    }) && grid.output === expected.output && grid.ground.size === 1 && grid.ground.has('4,2')
+    const value = grid.elements.get(editableKey)?.value ?? NaN
+    return [
+      { label: 'Keep the supplied wiring, sources and initial conditions', pass: valid },
+      { label: m.transient.edit === 'resistor' ? 'Resistance: 100 Ω–1 MΩ' : 'Capacitance: 1 nF–1 mF',
+        pass: Number.isFinite(value) && value >= (m.transient.edit === 'resistor' ? 100 : 1e-9) && value <= (m.transient.edit === 'resistor' ? 1e6 : 1e-3) },
+    ]
+  }
   const parts = [...grid.elements.values()]
   const resistors = parts.filter(p => p.type === 'resistor')
   const sources = parts.filter(p => p.type === 'voltage')
