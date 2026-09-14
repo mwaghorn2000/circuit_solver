@@ -1,0 +1,47 @@
+:root {
+  --bg: #05070a;
+  --bg-panel: #0b0f0c;
+  --white: #eef7ee;
+  --green: #39ff6a;
+  --green-dim: #1f6b34;
+  --mono:
+    ui-monospace, 'Cascadia Code', 'SFMono-Regular', 'Fira Code', Consolas,
+    'Courier New', monospace;
+
+  font: 16px/1.5 var(--mono);
+  color-scheme: dark;
+  color: var(--white);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--bg);
+}
+
+#root {
+  height: 100svh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: var(--mono);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: normal;
+  letter-spacing: 0.5px;
+}

@@ -1,0 +1,53 @@
+ .learning-practice {
+  display: grid; grid-template-columns: 240px minmax(320px, 1fr) 280px;
+  width: 100%; height: 100%; min-height: 0; overflow: hidden; color: var(--white);
+}
+.learning-path, .mission-feedback { padding: 22px 18px; overflow-y: auto; background: var(--bg-panel); }
+.learning-path { border-right: 1px solid var(--green-dim); }
+.mission-feedback { border-left: 1px solid var(--green-dim); }
+.learning-practice h1, .learning-practice h2 { font-size: 19px; margin: 6px 0 14px; }
+.learning-practice h3 { font-size: 14px; color: var(--green); }
+.learning-practice p, .learning-practice li { font-size: 12px; line-height: 1.65; }
+.learning-practice .eyebrow { font-size: 10px; letter-spacing: .14em; color: var(--green); margin: 0 0 10px; }
+.learning-practice button { font-family: var(--mono); font-size: 12px; border: 1px solid var(--green-dim); color: var(--white); background: transparent; padding: 9px 11px; cursor: pointer; }
+.learning-practice button:hover, .learning-practice button:focus-visible { border-color: var(--green); color: var(--green); }
+.learning-practice button:disabled { opacity: .5; cursor: wait; }
+.learning-practice .mission-link { display: flex; gap: 10px; width: 100%; text-align: left; margin: 5px 0; border-color: transparent; }
+.learning-practice .active { color: var(--green); border-color: var(--green-dim); background: #15301c; }
+.mission-link small { display: block; margin-top: 5px; font-size: 10px; color: #9eafa2; line-height: 1.5; }
+.mission-number { color: var(--green); padding-top: 2px; }
+.progress-label { display: block; font-size: 11px; margin-top: 24px; }
+.learning-path progress { width: 100%; height: 5px; accent-color: var(--green); margin: 10px 0 20px; }
+.path-note { color: #9eafa2; margin-top: 24px; }
+.mission-workspace { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.mission-brief { padding: 20px 24px 12px; border-bottom: 1px solid var(--green-dim); }
+.mission-brief p { margin: 6px 0; }
+.mission-limits { color: #9eafa2; }
+.mission-board { flex: 1; min-height: 280px; overflow: hidden; }
+.mission-tools { padding: 12px 18px; border-top: 1px solid var(--green-dim); background: var(--bg-panel); }
+.controls, .mission-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.editor-instructions { color: #9eafa2; margin: 8px 0; }
+.learning-practice .submit { background: var(--green); color: #07100a; border-color: var(--green); font-weight: bold; }
+.learning-practice .submit:hover { background: #b5ffc5; color: #07100a; }
+.requirements, .hints { padding-left: 18px; }
+.requirements li, .hints li { margin-bottom: 10px; }
+.check-results { list-style: none; padding: 0; }
+.check-results li { padding: 10px 0; border-bottom: 1px solid var(--green-dim); }
+.success { color: var(--green); }
+.needs-work { color: #ffc18c; }
+.worked-solution, .completion { margin-top: 18px; border-top: 1px solid var(--green-dim); padding-top: 10px; }
+@media (max-width: 1150px) {
+  .learning-practice { grid-template-columns: 195px minmax(300px, 1fr); overflow-y: auto; }
+  .learning-path { grid-row: span 2; }
+  .mission-feedback { border-left: 0; border-top: 1px solid var(--green-dim); overflow: visible; }
+  .mission-workspace { min-height: 650px; }
+}
+@media (max-width: 680px) {
+  .learning-practice { display: block; overflow-y: auto; }
+  .learning-path { border-right: 0; }
+  .learning-path nav { display: flex; overflow-x: auto; gap: 8px; }
+  .learning-path .mission-link { min-width: 190px; }
+  .learning-path > .mission-link { min-width: 0; }
+  .mission-workspace { height: 760px; }
+  .mission-brief { padding: 18px; }
+}

@@ -1,0 +1,11 @@
+**Design Doc**
+*Stlye*
+- Dark background with text in an ASCII type style.
+- Colours for extra things on screen are brighter green white, and only other colours who fit in well with this.
+- At the top of the screen we need home, practice, ranks, and online battles. These are the different menus. The home screen is what we should have as main and should contain a button to start an online match and a button to practice (no opponent)
+- Ranks, online battles are both WIP
+- The practice screen needs a canvas. The user should be able to place Voltage/Current supplies right click on them to set a values and also place resistors and right click on them to modify the value.
+- Controls should be below the canvas. 'R' to select resistor, 'V' for voltage supply and 'I' for current supply. 'W' for wire, 'G' for ground. the user should now be able to build a circuit. they also need to press 'O' to place their 'output node'.
+- A submit button will submit their circuit and see if it passes the requirements.
+
+Get to this point and then stop

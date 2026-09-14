@@ -1,0 +1,206 @@
+.circuit-grid-scroll {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  overflow: auto;
+  background: var(--bg-panel);
+  scrollbar-color: var(--green-dim) var(--bg-panel);
+  overscroll-behavior: contain;
+}
+
+.circuit-grid-wrap {
+  position: relative;
+  display: inline-block;
+  min-width: max-content;
+}
+
+.circuit-grid {
+  display: block;
+}
+
+.grid-bg {
+  fill: var(--bg-panel);
+}
+
+.grid-dot {
+  fill: #4f8f60;
+}
+
+/* Only real electrical nodes are drawn as dots. Edge hit areas sit between
+   adjacent dots, so every interval the user can see is a valid placement. */
+.hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.hit:hover {
+  fill: rgba(57, 255, 106, 0.1);
+  stroke: rgba(57, 255, 106, 0.45);
+  stroke-width: 1;
+}
+
+.hit.node:hover {
+  fill: rgba(238, 247, 238, 0.13);
+  stroke: rgba(238, 247, 238, 0.35);
+}
+
+.wire-line {
+  stroke: var(--green);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.resistor-path {
+  stroke: var(--green);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.source-lead {
+  stroke: var(--green);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.source-circle {
+  stroke: var(--green);
+  stroke-width: 2.5;
+  fill: var(--bg-panel);
+}
+
+.source-label {
+  fill: var(--white);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.component-value {
+  fill: var(--white);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--bg-panel);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+  user-select: none;
+}
+
+.component-value.horizontal {
+  text-anchor: middle;
+}
+
+.component-value.vertical {
+  text-anchor: start;
+}
+
+.component-value.align-end {
+  text-anchor: end;
+}
+
+.element-glyph {
+  pointer-events: none;
+}
+
+.source-arrow {
+  stroke: var(--green);
+  stroke-width: 2;
+}
+
+.arrowhead-fill {
+  fill: var(--green);
+}
+
+.ground-glyph line {
+  stroke: var(--green);
+  stroke-width: 2;
+}
+
+.output-glyph {
+  fill: none;
+  stroke: var(--white);
+  stroke-width: 2;
+}
+
+.component-menu {
+  position: absolute;
+  background: var(--bg-panel);
+  border: 1px solid var(--green);
+  width: 205px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: var(--mono);
+  color: var(--white);
+  z-index: 2;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+
+.component-menu-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--green);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.component-menu-heading button {
+  padding: 0 5px;
+  border: 0;
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.component-value-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.component-menu input {
+  width: 98px;
+  background: var(--bg);
+  border: 1px solid var(--green-dim);
+  color: var(--white);
+  font-family: var(--mono);
+  padding: 4px 6px;
+}
+
+.component-menu-actions {
+  display: grid;
+  gap: 5px;
+}
+
+.component-menu-actions button {
+  font-family: var(--mono);
+  background: transparent;
+  border: 1px solid var(--green-dim);
+  color: var(--white);
+  cursor: pointer;
+  padding: 5px 8px;
+  text-align: left;
+}
+
+.component-menu-actions button:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.component-menu-actions button.danger:hover {
+  border-color: #ff5f5f;
+  color: #ff7a7a;
+}
