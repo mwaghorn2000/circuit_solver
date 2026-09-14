@@ -113,4 +113,22 @@ mod tests {
         let err = Circuit::from_json(json).unwrap_err();
         assert!(matches!(err, CircuitError::InvalidResistance(_)));
     }
+
+    #[test]
+    fn parses_transient_components_and_switch_defaults() {
+        let json = r#"
+            [
+              { "type": "capacitor", "n1": 1, "n2": 0, "capacitance": 0.000001 },
+              {
+                "type": "switch", "n1": 2, "n2": 1,
+                "transitions": [{ "time": 0.001, "closed": true }]
+              }
+            ]
+        "#;
+
+        let circuit = Circuit::from_json(json).unwrap();
+        assert_eq!(circuit.components.len(), 2);
+        assert!(matches!(circuit.components[0], Component::Capacitor { .. }));
+        assert!(matches!(circuit.components[1], Component::Switch { .. }));
+    }
 }
